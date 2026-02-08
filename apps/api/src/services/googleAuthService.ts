@@ -24,7 +24,7 @@ export function buildGoogleAuthUrl(params: { state: string; codeChallenge: strin
     scope: ['openid', 'email', 'profile'],
     state: params.state,
     code_challenge: params.codeChallenge,
-    code_challenge_method: 'S256' as const,
+    code_challenge_method: 'S256' as any,
     prompt: 'consent'
   });
 }

@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, CookieOptions } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { registerUser, loginUser, refreshSession, logoutSession, createSessionTokens } from '../services/authService';
@@ -23,10 +23,10 @@ const loginSchema = z.object({
 
 const refreshSchema = z.object({});
 
-const oauthCookieOptions = {
+const oauthCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: env.nodeEnv === 'production',
-  sameSite: env.nodeEnv === 'production' ? 'none' : 'lax' as const,
+  sameSite: env.nodeEnv === 'production' ? 'none' : 'lax',
   maxAge: 10 * 60 * 1000,
   path: '/'
 };
