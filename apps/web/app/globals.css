@@ -95,7 +95,7 @@ input {
   height: 56px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0 28px;
   border-bottom: 1px solid var(--border-subtle);
   background: rgba(8, 8, 8, 0.92);
@@ -107,30 +107,6 @@ input {
   color: var(--text-secondary);
   letter-spacing: 0.6px;
   text-transform: uppercase;
-}
-
-.titlebar-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.titlebar-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--text-muted);
-}
-
-.titlebar-dot.close {
-  background: #ff5f57;
-}
-
-.titlebar-dot.minimize {
-  background: #febc2e;
-}
-
-.titlebar-dot.maximize {
-  background: #28c840;
 }
 
 .app-body {
@@ -148,6 +124,8 @@ input {
   border: 1px solid var(--border-subtle);
   border-radius: 24px;
   padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .panel-left {
@@ -158,6 +136,65 @@ input {
 
 .panel-right {
   min-height: 100%;
+}
+
+.panel-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.panel-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 107, 53, 0.15), transparent 55%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.panel-content {
+  position: relative;
+  z-index: 1;
+}
+
+.meteors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.meteor {
+  position: absolute;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 107, 53, 0.8), rgba(255, 255, 255, 0));
+  transform: rotate(215deg);
+  opacity: 0.6;
+  animation-name: meteor;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes meteor {
+  0% {
+    transform: translateX(0) translateY(0) rotate(215deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(-180px) translateY(180px) rotate(215deg);
+    opacity: 0;
+  }
 }
 
 .auth-container {

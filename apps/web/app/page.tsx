@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiGet, apiPost, apiPut } from '../lib/api';
 import type { Settings, Stats, User } from '../lib/types';
 import { Spotlight } from '../components/ui/Spotlight';
+import { Meteors } from '../components/ui/Meteors';
 import { Toast } from '../components/Toast';
 
 const DEFAULT_SETTINGS: Settings = {
@@ -355,11 +356,6 @@ export default function HomePage() {
         <div className="app-shell">
           <div className="titlebar">
             <div className="titlebar-title">Pomodoro Focus</div>
-            <div className="titlebar-controls">
-              <span className="titlebar-dot close" />
-              <span className="titlebar-dot minimize" />
-              <span className="titlebar-dot maximize" />
-            </div>
           </div>
           <div className="app-body">
             {!isAuthenticated ? (
@@ -412,7 +408,8 @@ export default function HomePage() {
             ) : (
               <div className="workspace">
                 <div className="panel-card panel-left">
-                  <div className="timer-display">
+                  <Meteors number={6} />
+                  <div className="panel-content timer-display">
                     <div className={`timer-mode ${timer.mode === 'focus' ? 'focus' : timer.mode === 'shortBreak' ? 'short-break' : 'long-break'}`}>
                       {timerModeLabel}
                     </div>
@@ -473,16 +470,18 @@ export default function HomePage() {
                 </div>
 
                 <div className="panel-card panel-right">
-                  <div className="nav-tabs nav-tabs-tight">
-                    <button className={`nav-tab ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>
-                      Stats
-                    </button>
-                    <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
-                      Settings
-                    </button>
-                  </div>
+                  <Meteors number={10} />
+                  <div className="panel-content">
+                    <div className="nav-tabs nav-tabs-tight">
+                      <button className={`nav-tab ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>
+                        Stats
+                      </button>
+                      <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
+                        Settings
+                      </button>
+                    </div>
 
-                  <div className={`stats-panel ${tab === 'stats' ? 'active' : ''}`}>
+                    <div className={`stats-panel ${tab === 'stats' ? 'active' : ''}`}>
                   <div className="stats-header">
                     <h2 className="stats-title">Statistics</h2>
                     <div className="streak-badge">
@@ -573,7 +572,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                  <div className={`settings-panel ${tab === 'settings' ? 'active' : ''}`}>
+                    <div className={`settings-panel ${tab === 'settings' ? 'active' : ''}`}>
                   <div className="settings-header">
                     <h2 className="settings-title">Settings</h2>
                   </div>
@@ -678,6 +677,7 @@ export default function HomePage() {
 
                   <button className="btn-primary" onClick={saveSettings}>Save Settings</button>
                   <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+                    </div>
                   </div>
                 </div>
               </div>
