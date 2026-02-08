@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Focus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
+      --bg-tertiary: #111111;
+      --bg-card: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #888888;
+      --text-muted: #444444;
+      --accent-focus: #ff6b35;
+      --accent-short: #4ecdc4;
+      --accent-long: #a855f7;
+      --accent-glow: rgba(255, 107, 53, 0.15);
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-active: rgba(255, 255, 255, 0.12);
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      user-select: none;
+      height: 100vh;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-muted);
+      border-radius: 2px;
+    }
+
+    /* Title bar */
+    .titlebar {
+      -webkit-app-region: drag;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: var(--bg-primary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .titlebar-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .titlebar-controls {
+      -webkit-app-region: no-drag;
+      display: flex;
+      gap: 8px;
+    }
+
+    .titlebar-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .titlebar-btn.close { background: #ff5f57; }
+    .titlebar-btn.minimize { background: #febc2e; }
+    .titlebar-btn.maximize { background: #28c840; }
+
+    .titlebar-btn:hover { opacity: 0.8; transform: scale(1.1); }
+
+    /* Main container */
+    .app-container {
+      height: calc(100vh - 32px);
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* Auth screens */
+    .auth-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px;
+    }
+
+    .auth-logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 32px;
+      background: linear-gradient(135deg, var(--accent-focus), #ff8c5a);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .auth-logo svg {
+      width: 32px;
+      height: 32px;
+      fill: white;
+    }
+
+    .auth-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .auth-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .auth-form {
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px 24px;
+      background: var(--accent-focus);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #ff8c5a;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 14px 24px;
+      background: transparent;
+      border: 1px solid var(--border-active);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 12px;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .auth-switch {
+      margin-top: 24px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .auth-switch a {
+      color: var(--accent-focus);
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+
+    /* Timer screen */
+    .timer-container {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .timer-container.active {
+      display: flex;
+    }
+
+    /* Navigation tabs */
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      background: var(--bg-tertiary);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+    }
+
+    .nav-tab {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-secondary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab.active {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .nav-tab:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    /* Timer display */
+    .timer-display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .timer-mode {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .timer-mode.focus { color: var(--accent-focus); }
+    .timer-mode.short-break { color: var(--accent-short); }
+    .timer-mode.long-break { color: var(--accent-long); }
+
+    .timer-circle {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin-bottom: 32px;
+    }
+
+    .timer-circle svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .timer-circle-bg {
+      fill: none;
+      stroke: var(--bg-tertiary);
+      stroke-width: 4;
+    }
+
+    .timer-circle-progress {
+      fill: none;
+      stroke: var(--accent-focus);
+      stroke-width: 4;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .timer-circle-progress.short-break { stroke: var(--accent-short); }
+    .timer-circle-progress.long-break { stroke: var(--accent-long); }
+
+    .timer-time {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 56px;
+      font-weight: 300;
+      letter-spacing: -2px;
+    }
+
+    .timer-time .seconds {
+      font-size: 32px;
+      color: var(--text-secondary);
+    }
+
+    /* Tick animation */
+    @keyframes tickPulse {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.02); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .timer-time.ticking {
+      animation: tickPulse 1s ease-in-out;
+    }
+
+    /* Glow effect */
+    @keyframes glowPulse {
+      0%, 100% { filter: drop-shadow(0 0 10px var(--accent-focus)); }
+      50% { filter: drop-shadow(0 0 25px var(--accent-focus)); }
+    }
+
+    .timer-circle.running .timer-circle-progress {
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    .timer-circle.running .timer-circle-progress.short-break {
+      animation: glowPulse 2s ease-in-out infinite;
+      --accent-focus: var(--accent-short);
+    }
+
+    .timer-circle.running .timer-circle-progress.long-break {
+      animation: glowPulse 2s ease-in-out infinite;
+      --accent-focus: var(--accent-long);
+    }
+
+    /* Session indicator */
+    .session-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .session-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      transition: all 0.3s ease;
+    }
+
+    .session-dot.completed {
+      background: var(--accent-focus);
+      box-shadow: 0 0 10px var(--accent-focus);
+    }
+
+    /* Timer controls */
+    .timer-controls {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .control-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .control-btn:hover {
+      background: var(--bg-card);
+      transform: translateY(-2px);
+    }
+
+    .control-btn.primary {
+      width: 72px;
+      height: 72px;
+      background: var(--accent-focus);
+    }
+
+    .control-btn.primary:hover {
+      background: #ff8c5a;
+      box-shadow: 0 8px 24px rgba(255, 107, 53, 0.3);
+    }
+
+    .control-btn.primary.short-break { background: var(--accent-short); }
+    .control-btn.primary.short-break:hover { 
+      background: #6be0d8;
+      box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
+    }
+
+    .control-btn.primary.long-break { background: var(--accent-long); }
+    .control-btn.primary.long-break:hover { 
+      background: #b76efc;
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+    }
+
+    .control-btn svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .control-btn.primary svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* Stats panel */
+    .stats-panel {
+      display: none;
+    }
+
+    .stats-panel.active {
+      display: block;
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .stats-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--accent-focus), #ff8c5a);
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .streak-badge svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Calendar */
+    .calendar-section {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .calendar-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .calendar-nav button {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .calendar-nav button:hover {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .calendar-day-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 4px;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .calendar-cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      position: relative;
+    }
+
+    .calendar-cell.has-sessions {
+      background: var(--accent-focus);
+      color: white;
+    }
+
+    .calendar-cell.has-sessions.level-1 { opacity: 0.3; }
+    .calendar-cell.has-sessions.level-2 { opacity: 0.5; }
+    .calendar-cell.has-sessions.level-3 { opacity: 0.7; }
+    .calendar-cell.has-sessions.level-4 { opacity: 0.9; }
+    .calendar-cell.has-sessions.level-5 { opacity: 1; }
+
+    .calendar-cell.today {
+      border: 2px solid var(--accent-focus);
+    }
+
+    /* Settings panel */
+    .settings-panel {
+      display: none;
+    }
+
+    .settings-panel.active {
+      display: block;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .settings-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .settings-section {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .settings-section-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .setting-row:first-child {
+      padding-top: 0;
+    }
+
+    .setting-label {
+      font-size: 14px;
+    }
+
+    .setting-value {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .setting-input {
+      width: 64px;
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .setting-input:focus {
+      outline: none;
+      border-color: var(--accent-focus);
+    }
+
+    .setting-unit {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-primary);
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-secondary);
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--accent-focus);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+      background-color: white;
+    }
+
+    /* Logout button */
+    .logout-btn {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 1px solid #ff5f57;
+      border-radius: 12px;
+      color: #ff5f57;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 16px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 95, 87, 0.1);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-active);
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success {
+      border-color: var(--accent-short);
+      color: var(--accent-short);
+    }
+
+    .toast.error {
+      border-color: #ff5f57;
+      color: #ff5f57;
+    }
+
+    /* Completion animation */
+    @keyframes celebrate {
+      0% { transform: scale(1); }
+      25% { transform: scale(1.1); }
+      50% { transform: scale(1); }
+      75% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .timer-circle.completed {
+      animation: celebrate 0.6s ease;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--bg-tertiary);
+      border-top-color: var(--accent-focus);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Hidden class */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Fade animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Title Bar -->
+  <div class="titlebar">
+    <div class="titlebar-title">Pomodoro Focus</div>
+    <div class="titlebar-controls">
+      <button class="titlebar-btn minimize" onclick="minimizeWindow()"></button>
+      <button class="titlebar-btn maximize" onclick="maximizeWindow()"></button>
+      <button class="titlebar-btn close" onclick="closeWindow()"></button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Auth Screen -->
+    <div id="authScreen" class="auth-container">
+      <div class="auth-logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Sign in to continue your focus journey</p>
+      
+      <form id="loginForm" class="auth-form">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="Enter username" required>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn-primary">Sign In</button>
+        <p class="auth-switch">Don't have an account? <a onclick="showRegister()">Create one</a></p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="registerUsername" placeholder="Choose a username" required>
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="Create a password" required>
+        </div>
+        <button type="submit" class="btn-primary">Create Account</button>
+        <p class="auth-switch">Already have an account? <a onclick="showLogin()">Sign in</a></p>
+      </form>
+    </div>
+
+    <!-- Timer Screen -->
+    <div id="timerScreen" class="timer-container">
+      <!-- Navigation -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="timer">Timer</button>
+        <button class="nav-tab" data-tab="stats">Stats</button>
+        <button class="nav-tab" data-tab="settings">Settings</button>
+      </div>
+
+      <!-- Timer Panel -->
+      <div id="timerPanel" class="timer-display">
+        <div class="timer-mode focus" id="timerMode">Focus Time</div>
+        
+        <div class="timer-circle" id="timerCircle">
+          <svg>
+            <circle class="timer-circle-bg" cx="130" cy="130" r="120"></circle>
+            <circle class="timer-circle-progress" id="timerProgress" cx="130" cy="130" r="120" 
+                    stroke-dasharray="754" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-time" id="timerTime">
+            <span class="minutes">25</span>:<span class="seconds">00</span>
+          </div>
+        </div>
+
+        <div class="session-indicator" id="sessionIndicator">
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+          <div class="session-dot"></div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="control-btn" id="resetBtn" title="Reset">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          </button>
+          <button class="control-btn primary" id="playPauseBtn" title="Start">
+            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="control-btn" id="skipBtn" title="Skip">
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Panel -->
+      <div id="statsPanel" class="stats-panel">
+        <div class="stats-header">
+          <h2 class="stats-title">Statistics</h2>
+          <div class="streak-badge" id="streakBadge">
+            <svg viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+            <span id="streakCount">0 day streak</span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalSessions">0</div>
+            <div class="stat-label">Total Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalMinutes">0</div>
+            <div class="stat-label">Focus Minutes</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="todaySessions">0</div>
+            <div class="stat-label">Today's Sessions</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="longestStreak">0</div>
+            <div class="stat-label">Longest Streak</div>
+          </div>
+        </div>
+
+        <div class="calendar-section">
+          <div class="calendar-header">
+            <span class="calendar-title" id="calendarTitle">January 2024</span>
+            <div class="calendar-nav">
+              <button id="prevMonth">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+              </button>
+              <button id="nextMonth">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="calendar-days">
+            <div class="calendar-day-name">Sun</div>
+            <div class="calendar-day-name">Mon</div>
+            <div class="calendar-day-name">Tue</div>
+            <div class="calendar-day-name">Wed</div>
+            <div class="calendar-day-name">Thu</div>
+            <div class="calendar-day-name">Fri</div>
+            <div class="calendar-day-name">Sat</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+          <h2 class="settings-title">Settings</h2>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Timer Durations</div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Focus Duration</span>
+            <div class="setting-value">
+              <input type="number" class="setting-input" id="focusDuration" value="25" min="1" max="120">
+              <span class="setting-unit">min</span>
+            </div>
+          </div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Short Break</span>
+            <div class="setting-value">
+              <input type="number" class="setting-input" id="shortBreakDuration" value="5" min="1" max="30">
+              <span class="setting-unit">min</span>
+            </div>
+          </div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Long Break</span>
+            <div class="setting-value">
+              <input type="number" class="setting-input" id="longBreakDuration" value="15" min="1" max="60">
+              <span class="setting-unit">min</span>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label">Sessions Before Long Break</span>
+            <div class="setting-value">
+              <input type="number" class="setting-input" id="sessionsBeforeLongBreak" value="4" min="1" max="10">
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Automation</div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Auto-start Breaks</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoStartBreaks">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Auto-start Focus</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="autoStartFocus">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-row">
+            <span class="setting-label">Sound Enabled</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="soundEnabled" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="saveSettings">Save Settings</button>
+        <button class="logout-btn" id="logoutBtn">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Check if running in Electron
+    const isElectron = typeof require !== 'undefined';
+    let ipcRenderer, Store;
+    
+    if (isElectron) {
+      const { ipcRenderer: ipc } = require('electron');
+      ipcRenderer = ipc;
+    }
+
+    // API Configuration
+    const API_BASE = (() => {
+      if (window.location.protocol === 'file:') {
+        return 'http://localhost:3847/api';
+      }
+      return `${window.location.origin}/api`;
+    })();
+    
+    // App State
+    let state = {
+      isAuthenticated: false,
+      token: null,
+      user: null,
+      settings: {
+        focusDuration: 25,
+        shortBreakDuration: 5,
+        longBreakDuration: 15,
+        sessionsBeforeLongBreak: 4,
+        autoStartBreaks: false,
+        autoStartFocus: false,
+        soundEnabled: true
+      },
+      stats: {
+        totalSessions: 0,
+        totalFocusMinutes: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        dailySessions: {}
+      },
+      timer: {
+        mode: 'focus', // focus, shortBreak, longBreak
+        isRunning: false,
+        timeLeft: 25 * 60,
+        totalTime: 25 * 60,
+        completedSessions: 0,
+        interval: null
+      },
+      calendar: {
+        currentMonth: new Date().getMonth(),
+        currentYear: new Date().getFullYear()
+      }
+    };
+
+    // DOM Elements
+    const elements = {
+      authScreen: document.getElementById('authScreen'),
+      timerScreen: document.getElementById('timerScreen'),
+      loginForm: document.getElementById('loginForm'),
+      registerForm: document.getElementById('registerForm'),
+      timerPanel: document.getElementById('timerPanel'),
+      statsPanel: document.getElementById('statsPanel'),
+      settingsPanel: document.getElementById('settingsPanel'),
+      timerCircle: document.getElementById('timerCircle'),
+      timerProgress: document.getElementById('timerProgress'),
+      timerTime: document.getElementById('timerTime'),
+      timerMode: document.getElementById('timerMode'),
+      sessionIndicator: document.getElementById('sessionIndicator'),
+      playPauseBtn: document.getElementById('playPauseBtn'),
+      playIcon: document.getElementById('playIcon'),
+      pauseIcon: document.getElementById('pauseIcon'),
+      resetBtn: document.getElementById('resetBtn'),
+      skipBtn: document.getElementById('skipBtn'),
+      toast: document.getElementById('toast'),
+      calendarGrid: document.getElementById('calendarGrid'),
+      calendarTitle: document.getElementById('calendarTitle')
+    };
+
+    // Window controls
+    function minimizeWindow() {
+      if (isElectron) ipcRenderer.send('minimize-window');
+    }
+
+    function maximizeWindow() {
+      if (isElectron) ipcRenderer.send('maximize-window');
+    }
+
+    function closeWindow() {
+      if (isElectron) ipcRenderer.send('close-window');
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+      elements.toast.textContent = message;
+      elements.toast.className = `toast ${type} show`;
+      setTimeout(() => {
+        elements.toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Auth functions
+    function showLogin() {
+      elements.loginForm.classList.remove('hidden');
+      elements.registerForm.classList.add('hidden');
+      document.querySelector('.auth-title').textContent = 'Welcome Back';
+      document.querySelector('.auth-subtitle').textContent = 'Sign in to continue your focus journey';
+    }
+
+    function showRegister() {
+      elements.loginForm.classList.add('hidden');
+      elements.registerForm.classList.remove('hidden');
+      document.querySelector('.auth-title').textContent = 'Create Account';
+      document.querySelector('.auth-subtitle').textContent = 'Start your productivity journey';
+    }
+
+    async function login(username, password) {
+      try {
+        const response = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Login failed');
+        }
+
+        const data = await response.json();
+        state.token = data.token;
+        state.user = data.user;
+        state.isAuthenticated = true;
+        
+        // Save to local storage
+        localStorage.setItem('pomodoro_token', data.token);
+        localStorage.setItem('pomodoro_user', JSON.stringify(data.user));
+        
+        await loadUserData();
+        showMainApp();
+        showToast('Welcome back!', 'success');
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    async function register(username, password) {
+      try {
+        const response = await fetch(`${API_BASE}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Registration failed');
+        }
+
+        const data = await response.json();
+        state.token = data.token;
+        state.user = data.user;
+        state.isAuthenticated = true;
+        
+        localStorage.setItem('pomodoro_token', data.token);
+        localStorage.setItem('pomodoro_user', JSON.stringify(data.user));
+        
+        await loadUserData();
+        showMainApp();
+        showToast('Account created!', 'success');
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    }
+
+    function logout() {
+      state.token = null;
+      state.user = null;
+      state.isAuthenticated = false;
+      localStorage.removeItem('pomodoro_token');
+      localStorage.removeItem('pomodoro_user');
+      
+      resetTimer();
+      showAuthScreen();
+      showToast('Signed out', 'success');
+    }
+
+    // API functions
+    async function loadUserData() {
+      try {
+        // Load settings
+        const settingsRes = await fetch(`${API_BASE}/settings`, {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+        if (settingsRes.ok) {
+          state.settings = await settingsRes.json();
+          applySettings();
+        }
+
+        // Load stats
+        const statsRes = await fetch(`${API_BASE}/stats`, {
+          headers: { 'Authorization': `Bearer ${state.token}` }
+        });
+        if (statsRes.ok) {
+          state.stats = await statsRes.json();
+          updateStatsDisplay();
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+        // Use local storage as fallback
+        loadLocalData();
+      }
+    }
+
+    function loadLocalData() {
+      const localSettings = localStorage.getItem('pomodoro_settings');
+      const localStats = localStorage.getItem('pomodoro_stats');
+      
+      if (localSettings) {
+        state.settings = JSON.parse(localSettings);
+        applySettings();
+      }
+      
+      if (localStats) {
+        state.stats = JSON.parse(localStats);
+        updateStatsDisplay();
+      }
+    }
+
+    async function saveSettings() {
+      try {
+        state.settings = {
+          focusDuration: parseInt(document.getElementById('focusDuration').value),
+          shortBreakDuration: parseInt(document.getElementById('shortBreakDuration').value),
+          longBreakDuration: parseInt(document.getElementById('longBreakDuration').value),
+          sessionsBeforeLongBreak: parseInt(document.getElementById('sessionsBeforeLongBreak').value),
+          autoStartBreaks: document.getElementById('autoStartBreaks').checked,
+          autoStartFocus: document.getElementById('autoStartFocus').checked,
+          soundEnabled: document.getElementById('soundEnabled').checked
+        };
+
+        if (state.token) {
+          await fetch(`${API_BASE}/settings`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`
+            },
+            body: JSON.stringify(state.settings)
+          });
+        }
+
+        localStorage.setItem('pomodoro_settings', JSON.stringify(state.settings));
+        applySettings();
+        showToast('Settings saved!', 'success');
+      } catch (error) {
+        console.error('Failed to save settings:', error);
+        localStorage.setItem('pomodoro_settings', JSON.stringify(state.settings));
+        showToast('Settings saved locally', 'success');
+      }
+    }
+
+    async function recordSession(duration) {
+      try {
+        if (state.token) {
+          const response = await fetch(`${API_BASE}/stats/session`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${state.token}`
+            },
+            body: JSON.stringify({ duration })
+          });
+          
+          if (response.ok) {
+            state.stats = await response.json();
+          }
+        } else {
+          // Local fallback
+          const today = new Date().toISOString().split('T')[0];
+          state.stats.totalSessions += 1;
+          state.stats.totalFocusMinutes += duration;
+          
+          if (!state.stats.dailySessions[today]) {
+            state.stats.dailySessions[today] = 0;
+          }
+          state.stats.dailySessions[today] += 1;
+          
+          // Update streak
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = yesterday.toISOString().split('T')[0];
+          
+          if (state.stats.lastSessionDate === yesterdayStr) {
+            state.stats.currentStreak += 1;
+          } else if (state.stats.lastSessionDate !== today) {
+            state.stats.currentStreak = 1;
+          }
+          
+          if (state.stats.currentStreak > state.stats.longestStreak) {
+            state.stats.longestStreak = state.stats.currentStreak;
+          }
+          
+          state.stats.lastSessionDate = today;
+        }
+
+        localStorage.setItem('pomodoro_stats', JSON.stringify(state.stats));
+        updateStatsDisplay();
+      } catch (error) {
+        console.error('Failed to record session:', error);
+      }
+    }
+
+    // UI Functions
+    function showAuthScreen() {
+      elements.authScreen.style.display = 'flex';
+      elements.timerScreen.classList.remove('active');
+    }
+
+    function showMainApp() {
+      elements.authScreen.style.display = 'none';
+      elements.timerScreen.classList.add('active');
+      updateTimerDisplay();
+      renderCalendar();
+    }
+
+    function applySettings() {
+      document.getElementById('focusDuration').value = state.settings.focusDuration;
+      document.getElementById('shortBreakDuration').value = state.settings.shortBreakDuration;
+      document.getElementById('longBreakDuration').value = state.settings.longBreakDuration;
+      document.getElementById('sessionsBeforeLongBreak').value = state.settings.sessionsBeforeLongBreak;
+      document.getElementById('autoStartBreaks').checked = state.settings.autoStartBreaks;
+      document.getElementById('autoStartFocus').checked = state.settings.autoStartFocus;
+      document.getElementById('soundEnabled').checked = state.settings.soundEnabled;
+      
+      // Update timer if not running
+      if (!state.timer.isRunning) {
+        setTimerMode('focus');
+      }
+      
+      updateSessionIndicator();
+    }
+
+    function updateStatsDisplay() {
+      document.getElementById('totalSessions').textContent = state.stats.totalSessions || 0;
+      document.getElementById('totalMinutes').textContent = state.stats.totalFocusMinutes || 0;
+      document.getElementById('longestStreak').textContent = state.stats.longestStreak || 0;
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('todaySessions').textContent = state.stats.dailySessions?.[today] || 0;
+      
+      const streak = state.stats.currentStreak || 0;
+      document.getElementById('streakCount').textContent = `${streak} day${streak !== 1 ? 's' : ''} streak`;
+      
+      renderCalendar();
+    }
+
+    // Timer Functions
+    function setTimerMode(mode) {
+      state.timer.mode = mode;
+      let duration;
+      
+      switch (mode) {
+        case 'focus':
+          duration = state.settings.focusDuration * 60;
+          elements.timerMode.textContent = 'Focus Time';
+          elements.timerMode.className = 'timer-mode focus';
+          elements.timerProgress.classList.remove('short-break', 'long-break');
+          elements.playPauseBtn.classList.remove('short-break', 'long-break');
+          break;
+        case 'shortBreak':
+          duration = state.settings.shortBreakDuration * 60;
+          elements.timerMode.textContent = 'Short Break';
+          elements.timerMode.className = 'timer-mode short-break';
+          elements.timerProgress.classList.add('short-break');
+          elements.timerProgress.classList.remove('long-break');
+          elements.playPauseBtn.classList.add('short-break');
+          elements.playPauseBtn.classList.remove('long-break');
+          break;
+        case 'longBreak':
+          duration = state.settings.longBreakDuration * 60;
+          elements.timerMode.textContent = 'Long Break';
+          elements.timerMode.className = 'timer-mode long-break';
+          elements.timerProgress.classList.add('long-break');
+          elements.timerProgress.classList.remove('short-break');
+          elements.playPauseBtn.classList.add('long-break');
+          elements.playPauseBtn.classList.remove('short-break');
+          break;
+      }
+      
+      state.timer.timeLeft = duration;
+      state.timer.totalTime = duration;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(state.timer.timeLeft / 60);
+      const seconds = state.timer.timeLeft % 60;
+      
+      const minutesStr = minutes.toString().padStart(2, '0');
+      const secondsStr = seconds.toString().padStart(2, '0');
+      
+      elements.timerTime.innerHTML = `<span class="minutes">${minutesStr}</span>:<span class="seconds">${secondsStr}</span>`;
+      
+      // Update progress circle
+      const circumference = 2 * Math.PI * 120;
+      const progress = (state.timer.totalTime - state.timer.timeLeft) / state.timer.totalTime;
+      const offset = circumference * (1 - progress);
+      elements.timerProgress.style.strokeDashoffset = offset;
+      
+      // Update document title
+      document.title = `${minutesStr}:${secondsStr} - Pomodoro Focus`;
+    }
+
+    function startTimer() {
+      state.timer.isRunning = true;
+      elements.timerCircle.classList.add('running');
+      elements.playIcon.style.display = 'none';
+      elements.pauseIcon.style.display = 'block';
+      
+      state.timer.interval = setInterval(() => {
+        if (state.timer.timeLeft > 0) {
+          state.timer.timeLeft--;
+          updateTimerDisplay();
+          
+          // Tick animation
+          elements.timerTime.classList.add('ticking');
+          setTimeout(() => {
+            elements.timerTime.classList.remove('ticking');
+          }, 100);
+        } else {
+          completeTimer();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      state.timer.isRunning = false;
+      elements.timerCircle.classList.remove('running');
+      elements.playIcon.style.display = 'block';
+      elements.pauseIcon.style.display = 'none';
+      
+      if (state.timer.interval) {
+        clearInterval(state.timer.interval);
+        state.timer.interval = null;
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      setTimerMode(state.timer.mode);
+    }
+
+    function skipTimer() {
+      pauseTimer();
+      completeTimer(true);
+    }
+
+    function completeTimer(skipped = false) {
+      pauseTimer();
+      elements.timerCircle.classList.add('completed');
+      setTimeout(() => {
+        elements.timerCircle.classList.remove('completed');
+      }, 600);
+
+      // Play sound if enabled
+      if (state.settings.soundEnabled && !skipped) {
+        playNotificationSound();
+      }
+
+      if (state.timer.mode === 'focus') {
+        // Record session
+        if (!skipped) {
+          recordSession(state.settings.focusDuration);
+        }
+        
+        state.timer.completedSessions++;
+        updateSessionIndicator();
+        
+        // Check if long break
+        if (state.timer.completedSessions >= state.settings.sessionsBeforeLongBreak) {
+          state.timer.completedSessions = 0;
+          setTimerMode('longBreak');
+          showToast('Time for a long break!', 'success');
+        } else {
+          setTimerMode('shortBreak');
+          showToast('Focus complete! Take a short break.', 'success');
+        }
+        
+        if (state.settings.autoStartBreaks && !skipped) {
+          setTimeout(startTimer, 1000);
+        }
+      } else {
+        setTimerMode('focus');
+        showToast('Break complete! Ready to focus.', 'success');
+        
+        if (state.settings.autoStartFocus && !skipped) {
+          setTimeout(startTimer, 1000);
+        }
+      }
+      
+      updateSessionIndicator();
+    }
+
+    function updateSessionIndicator() {
+      const dots = elements.sessionIndicator.querySelectorAll('.session-dot');
+      const maxSessions = state.settings.sessionsBeforeLongBreak;
+      
+      // Update number of dots
+      elements.sessionIndicator.innerHTML = '';
+      for (let i = 0; i < maxSessions; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'session-dot';
+        if (i < state.timer.completedSessions) {
+          dot.classList.add('completed');
+        }
+        elements.sessionIndicator.appendChild(dot);
+      }
+    }
+
+    function playNotificationSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    }
+
+    // Calendar Functions
+    function renderCalendar() {
+      const year = state.calendar.currentYear;
+      const month = state.calendar.currentMonth;
+      
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      elements.calendarTitle.textContent = `${monthNames[month]} ${year}`;
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const today = new Date();
+      
+      elements.calendarGrid.innerHTML = '';
+      
+      // Empty cells for days before first day of month
+      for (let i = 0; i < firstDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        elements.calendarGrid.appendChild(cell);
+      }
+      
+      // Days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        cell.textContent = day;
+        
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const sessions = state.stats.dailySessions?.[dateStr] || 0;
+        
+        if (sessions > 0) {
+          cell.classList.add('has-sessions');
+          const level = Math.min(5, Math.ceil(sessions / 2));
+          cell.classList.add(`level-${level}`);
+          cell.title = `${sessions} session${sessions !== 1 ? 's' : ''}`;
+        }
+        
+        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+          cell.classList.add('today');
+        }
+        
+        elements.calendarGrid.appendChild(cell);
+      }
+    }
+
+    // Navigation
+    function switchTab(tabName) {
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+      });
+      
+      elements.timerPanel.style.display = tabName === 'timer' ? 'flex' : 'none';
+      elements.statsPanel.classList.toggle('active', tabName === 'stats');
+      elements.settingsPanel.classList.toggle('active', tabName === 'settings');
+    }
+
+    // Event Listeners
+    elements.loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      login(username, password);
+    });
+
+    elements.registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('registerUsername').value;
+      const password = document.getElementById('registerPassword').value;
+      register(username, password);
+    });
+
+    elements.playPauseBtn.addEventListener('click', () => {
+      if (state.timer.isRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    elements.resetBtn.addEventListener('click', resetTimer);
+    elements.skipBtn.addEventListener('click', skipTimer);
+
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
+    document.getElementById('saveSettings').addEventListener('click', saveSettings);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      state.calendar.currentMonth--;
+      if (state.calendar.currentMonth < 0) {
+        state.calendar.currentMonth = 11;
+        state.calendar.currentYear--;
+      }
+      renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      state.calendar.currentMonth++;
+      if (state.calendar.currentMonth > 11) {
+        state.calendar.currentMonth = 0;
+        state.calendar.currentYear++;
+      }
+      renderCalendar();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (document.activeElement.tagName === 'INPUT') return;
+      
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (state.timer.isRunning) {
+          pauseTimer();
+        } else {
+          startTimer();
+        }
+      }
+      
+      if (e.code === 'KeyR') {
+        resetTimer();
+      }
+      
+      if (e.code === 'KeyS') {
+        skipTimer();
+      }
+    });
+
+    // Initialize
+    async function init() {
+      // Check for saved session
+      const savedToken = localStorage.getItem('pomodoro_token');
+      const savedUser = localStorage.getItem('pomodoro_user');
+      
+      if (savedToken && savedUser) {
+        state.token = savedToken;
+        state.user = JSON.parse(savedUser);
+        state.isAuthenticated = true;
+        
+        try {
+          await loadUserData();
+          showMainApp();
+        } catch (error) {
+          // Token might be invalid, try local data
+          loadLocalData();
+          showMainApp();
+        }
+      } else {
+        // Check if server is available
+        try {
+          const response = await fetch(`${API_BASE}/health`);
+          if (!response.ok) {
+            throw new Error('Server unavailable');
+          }
+        } catch (error) {
+          console.log('Server unavailable, running in offline mode');
+          // Enable offline mode
+          loadLocalData();
+          state.isAuthenticated = true;
+          state.user = { username: 'local' };
+          showMainApp();
+          return;
+        }
+        
+        showAuthScreen();
+      }
+      
+      updateSessionIndicator();
+    }
+
+    init();
+  </script>
+</body>
+</html>
