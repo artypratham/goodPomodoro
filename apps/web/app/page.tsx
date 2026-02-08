@@ -42,7 +42,7 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [stats, setStats] = useState<Stats>(DEFAULT_STATS);
-  const [tab, setTab] = useState<'timer' | 'stats' | 'settings'>('timer');
+  const [tab, setTab] = useState<'stats' | 'settings'>('stats');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authLoading, setAuthLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({
@@ -410,79 +410,79 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <div>
-                <div className="nav-tabs">
-                  <button className={`nav-tab ${tab === 'timer' ? 'active' : ''}`} onClick={() => setTab('timer')}>
-                    Timer
-                  </button>
-                  <button className={`nav-tab ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>
-                    Stats
-                  </button>
-                  <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
-                    Settings
-                  </button>
-                </div>
+              <div className="workspace">
+                <div className="panel-card panel-left">
+                  <div className="timer-display">
+                    <div className={`timer-mode ${timer.mode === 'focus' ? 'focus' : timer.mode === 'shortBreak' ? 'short-break' : 'long-break'}`}>
+                      {timerModeLabel}
+                    </div>
+                    <div className={`timer-circle ${timer.isRunning ? 'running' : ''} ${isCompleted ? 'completed' : ''}`}>
+                      <svg>
+                        <circle className="timer-circle-bg" cx="130" cy="130" r="120" />
+                        <circle
+                          className={`timer-circle-progress ${timer.mode === 'shortBreak' ? 'short-break' : timer.mode === 'longBreak' ? 'long-break' : ''}`}
+                          cx="130"
+                          cy="130"
+                          r="120"
+                          strokeDasharray="754"
+                          strokeDashoffset={progressOffset}
+                        />
+                      </svg>
+                      <div className="timer-time">
+                        <span className="minutes">{minutesStr}</span>:<span className="seconds">{secondsStr}</span>
+                      </div>
+                    </div>
 
-                <div className="timer-display" style={{ display: tab === 'timer' ? 'flex' : 'none' }}>
-                  <div className={`timer-mode ${timer.mode === 'focus' ? 'focus' : timer.mode === 'shortBreak' ? 'short-break' : 'long-break'}`}>
-                    {timerModeLabel}
-                  </div>
-                  <div className={`timer-circle ${timer.isRunning ? 'running' : ''} ${isCompleted ? 'completed' : ''}`}>
-                    <svg>
-                      <circle className="timer-circle-bg" cx="130" cy="130" r="120" />
-                      <circle
-                        className={`timer-circle-progress ${timer.mode === 'shortBreak' ? 'short-break' : timer.mode === 'longBreak' ? 'long-break' : ''}`}
-                        cx="130"
-                        cy="130"
-                        r="120"
-                        strokeDasharray="754"
-                        strokeDashoffset={progressOffset}
-                      />
-                    </svg>
-                    <div className="timer-time">
-                      <span className="minutes">{minutesStr}</span>:<span className="seconds">{secondsStr}</span>
+                    <div className="session-indicator">
+                      {Array.from({ length: settings.sessionsBeforeLongBreak }).map((_, index) => (
+                        <div
+                          key={index}
+                          className={`session-dot ${index < timer.completedSessions ? 'completed' : ''}`}
+                        />
+                      ))}
+                    </div>
+
+                    <div className="timer-controls">
+                      <button className="control-btn" onClick={resetTimer} title="Reset">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                        </svg>
+                      </button>
+                      <button
+                        className={`control-btn primary ${timer.mode === 'shortBreak' ? 'short-break' : timer.mode === 'longBreak' ? 'long-break' : ''}`}
+                        onClick={() => (timer.isRunning ? pauseTimer() : startTimer())}
+                        title={timer.isRunning ? 'Pause' : 'Start'}
+                      >
+                        {timer.isRunning ? (
+                          <svg viewBox="0 0 24 24">
+                            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
+                        )}
+                      </button>
+                      <button className="control-btn" onClick={skipTimer} title="Skip">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
-
-                  <div className="session-indicator">
-                    {Array.from({ length: settings.sessionsBeforeLongBreak }).map((_, index) => (
-                      <div
-                        key={index}
-                        className={`session-dot ${index < timer.completedSessions ? 'completed' : ''}`}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="timer-controls">
-                    <button className="control-btn" onClick={resetTimer} title="Reset">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
-                      </svg>
-                    </button>
-                    <button
-                      className={`control-btn primary ${timer.mode === 'shortBreak' ? 'short-break' : timer.mode === 'longBreak' ? 'long-break' : ''}`}
-                      onClick={() => (timer.isRunning ? pauseTimer() : startTimer())}
-                      title={timer.isRunning ? 'Pause' : 'Start'}
-                    >
-                      {timer.isRunning ? (
-                        <svg viewBox="0 0 24 24">
-                          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                        </svg>
-                      ) : (
-                        <svg viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      )}
-                    </button>
-                    <button className="control-btn" onClick={skipTimer} title="Skip">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
-                      </svg>
-                    </button>
-                  </div>
                 </div>
 
-                <div className={`stats-panel ${tab === 'stats' ? 'active' : ''}`}>
+                <div className="panel-card panel-right">
+                  <div className="nav-tabs nav-tabs-tight">
+                    <button className={`nav-tab ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>
+                      Stats
+                    </button>
+                    <button className={`nav-tab ${tab === 'settings' ? 'active' : ''}`} onClick={() => setTab('settings')}>
+                      Settings
+                    </button>
+                  </div>
+
+                  <div className={`stats-panel ${tab === 'stats' ? 'active' : ''}`}>
                   <div className="stats-header">
                     <h2 className="stats-title">Statistics</h2>
                     <div className="streak-badge">
@@ -573,7 +573,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div className={`settings-panel ${tab === 'settings' ? 'active' : ''}`}>
+                  <div className={`settings-panel ${tab === 'settings' ? 'active' : ''}`}>
                   <div className="settings-header">
                     <h2 className="settings-title">Settings</h2>
                   </div>
@@ -678,6 +678,7 @@ export default function HomePage() {
 
                   <button className="btn-primary" onClick={saveSettings}>Save Settings</button>
                   <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+                  </div>
                 </div>
               </div>
             )}

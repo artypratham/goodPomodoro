@@ -73,31 +73,32 @@ input {
 }
 
 .container {
-  max-width: 440px;
+  max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  padding: 32px 20px 48px;
+  padding: 40px 24px 64px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
 }
 
 .app-shell {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(6, 6, 6, 0.88);
   border: 1px solid var(--border-subtle);
-  border-radius: 24px;
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(18px);
 }
 
 .titlebar {
-  height: 48px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 28px;
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(8, 8, 8, 0.9);
+  background: rgba(8, 8, 8, 0.92);
 }
 
 .titlebar-title {
@@ -133,7 +134,30 @@ input {
 }
 
 .app-body {
+  padding: 32px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 24px;
+}
+
+.panel-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
   padding: 24px;
+}
+
+.panel-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-right {
+  min-height: 100%;
 }
 
 .auth-container {
@@ -307,10 +331,14 @@ input {
   display: flex;
   justify-content: center;
   gap: 4px;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   padding: 4px;
   border-radius: 12px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+}
+
+.nav-tabs-tight {
+  justify-content: space-between;
 }
 
 .nav-tab {
@@ -334,7 +362,7 @@ input {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 0 24px;
+  padding: 8px 0 16px;
 }
 
 .timer-mode {
@@ -808,7 +836,7 @@ input {
 
 @media (max-width: 600px) {
   .container {
-    padding: 16px 12px 32px;
+    padding: 20px 12px 32px;
   }
 
   .timer-circle {
@@ -818,5 +846,23 @@ input {
 
   .timer-time {
     font-size: 48px;
+  }
+}
+
+@media (max-width: 980px) {
+  .container {
+    padding: 24px 16px 40px;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-left {
+    order: 1;
+  }
+
+  .panel-right {
+    order: 2;
   }
 }
