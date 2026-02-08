@@ -36,7 +36,7 @@ function resolveRedirectUrl(raw?: string) {
   if (!raw) return fallback;
   try {
     const url = new URL(raw);
-    const allowedOrigins = env.corsOrigin.split(',').map((value) => value.trim());
+    const allowedOrigins = env.corsOrigin.split(',').map((value: string) => value.trim());
     if (allowedOrigins.includes(url.origin)) {
       return url.toString();
     }

@@ -23,7 +23,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: env.corsOrigin.split(',').map((value) => value.trim()),
+  origin: env.corsOrigin.split(',').map((value: string) => value.trim()),
   credentials: true
 }));
 

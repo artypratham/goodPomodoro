@@ -15,7 +15,7 @@ export function originCheck(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  const allowed = env.corsOrigin.split(',').map((value) => value.trim());
+  const allowed = env.corsOrigin.split(',').map((value: string) => value.trim());
   if (!allowed.includes(origin)) {
     res.status(403).json({ error: 'Origin not allowed' });
     return;
