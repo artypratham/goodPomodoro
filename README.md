@@ -17,6 +17,14 @@ The frontend calls the API over HTTPS using secure, httpOnly cookies. Auth sessi
 - Google OAuth login
 - Production-grade security headers, rate limiting, and HTTPS enforcement
 
+## Data Model Overview
+- User: account profile and credentials
+- UserSettings: timer preferences
+- UserStats: totals and streaks
+- DailyStat: per-day session counts for the heatmap
+- Session: refresh token storage for secure auth rotation
+- OAuthAccount: Google provider link
+
 ## Repo Structure
 ```
 apps/
