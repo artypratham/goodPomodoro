@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { httpsOnly } from './middleware/httpsOnly';
 import { originCheck } from './middleware/originCheck';
 import { env, assertRequiredEnv } from './config/env';
+import { normalizeOrigin, parseAllowedOrigins } from './utils/origin';
 
 assertRequiredEnv();
 
@@ -22,8 +23,17 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
+const allowedOrigins = parseAllowedOrigins(env.corsOrigin);
+
 app.use(cors({
-  origin: env.corsOrigin.split(',').map((value: string) => value.trim()),
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    const isAllowed = allowedOrigins.includes(normalizeOrigin(origin));
+    callback(null, isAllowed);
+  },
   credentials: true
 }));
 

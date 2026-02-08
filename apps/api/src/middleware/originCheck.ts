@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { env } from '../config/env';
+import { normalizeOrigin, parseAllowedOrigins } from '../utils/origin';
 
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 
@@ -15,8 +16,8 @@ export function originCheck(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  const allowed = env.corsOrigin.split(',').map((value: string) => value.trim());
-  if (!allowed.includes(origin)) {
+  const allowed = parseAllowedOrigins(env.corsOrigin);
+  if (!allowed.includes(normalizeOrigin(origin))) {
     res.status(403).json({ error: 'Origin not allowed' });
     return;
   }
