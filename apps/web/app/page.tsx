@@ -380,18 +380,20 @@ export default function HomePage() {
                   <AuthRegisterForm onSubmit={handleRegister} loading={authLoading} />
                 )}
 
-                <div className="auth-divider">or</div>
-                <button
-                  className="google-btn"
-                  onClick={() => {
-                    window.location.href = `${API_URL}/auth/google?redirect=${encodeURIComponent(window.location.origin)}`;
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M21.805 10.023h-9.18v3.954h5.268c-.226 1.225-1.374 3.594-5.268 3.594-3.167 0-5.745-2.616-5.745-5.845 0-3.23 2.578-5.846 5.745-5.846 1.804 0 3.014.771 3.709 1.437l2.523-2.429C17.49 3.437 15.477 2.5 12.625 2.5 7.668 2.5 3.64 6.529 3.64 11.726c0 5.197 4.028 9.226 8.985 9.226 5.2 0 8.648-3.655 8.648-8.78 0-.591-.067-1.038-.15-1.449Z" fill="white" />
-                  </svg>
-                  Continue with Google
-                </button>
+                {/*
+                  <div className="auth-divider">or</div>
+                  <button
+                    className="google-btn"
+                    onClick={() => {
+                      window.location.href = `${API_URL}/auth/google?redirect=${encodeURIComponent(window.location.origin)}`;
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M21.805 10.023h-9.18v3.954h5.268c-.226 1.225-1.374 3.594-5.268 3.594-3.167 0-5.745-2.616-5.745-5.845 0-3.23 2.578-5.846 5.745-5.846 1.804 0 3.014.771 3.709 1.437l2.523-2.429C17.49 3.437 15.477 2.5 12.625 2.5 7.668 2.5 3.64 6.529 3.64 11.726c0 5.197 4.028 9.226 8.985 9.226 5.2 0 8.648-3.655 8.648-8.78 0-.591-.067-1.038-.15-1.449Z" fill="white" />
+                    </svg>
+                    Continue with Google
+                  </button>
+                */}
 
                 <div className="auth-switch">
                   {authMode === 'login' ? (

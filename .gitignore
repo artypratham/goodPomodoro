@@ -20,8 +20,5 @@ yarn-error.log*
 # OS
 .DS_Store
 
-# Prisma
-apps/api/prisma/migrations/
-
 # Misc
 coverage/

@@ -48,7 +48,7 @@ Create `.env` files using the examples:
 ```
 cd apps/api
 npx prisma generate
-npx prisma migrate dev
+npx prisma migrate dev --name init
 ```
 
 ### 4) Run dev servers
